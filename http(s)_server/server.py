@@ -6,12 +6,20 @@ from threading import Event
 exit_event = Event()
 
 
-def signal_handler(signal, frame):
+def signal_handler(_signal, _):
+    """
+    Устанавливает глобальную переменную Event в значение true
+    """
     print('Прерывание.')
     exit_event.set()
 
 
-def receive_connection(connect, client_address):
+def receive_connection(connect: socket, client_address: socket):
+    """
+    Получает данные из установленного соединения и отправляет их обратно в Uppercase
+    :param connect: сокет с установленным соединением
+    :param client_address: адрес клиента
+    """
     while True:
         try:
             data = connect.recv(16)
@@ -28,7 +36,11 @@ def receive_connection(connect, client_address):
             pass
 
 
-def start_server(server_address):
+def start_server(server_address: tuple):
+    """
+    Запускает сервер с переданным ip и port
+    :param server_address: tuple(ip, port)
+    """
     signal.signal(signal.SIGINT, signal_handler)
 
     with socket.create_server(server_address) as sock:
