@@ -55,6 +55,7 @@ def start_server(server_address: tuple):
                 pass
         else:
             print('Выход из программы...')
+            sock.close()
             sys.exit(1)
 
 
