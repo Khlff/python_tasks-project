@@ -4,6 +4,7 @@ import sys
 from threading import Event
 
 exit_event = Event()
+BUFFER_VALUE = 1024
 
 
 def signal_handler(_signal, _):
@@ -22,7 +23,7 @@ def receive_connection(connect: socket, client_address: socket):
     """
     while True:
         try:
-            data = connect.recv(16)
+            data = connect.recv(BUFFER_VALUE)
             print(f'Подключён: {client_address}')
             if data:
                 print(f'Данные получены от: {client_address}')
@@ -58,7 +59,7 @@ def start_server(server_address: tuple):
 
 
 def main():
-    server_address = ('localhost', 8080)
+    server_address = ('localhost', 8081)
     start_server(server_address)
 
 
