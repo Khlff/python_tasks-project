@@ -8,7 +8,7 @@ from threading import Event
 import chardet
 
 exit_event = Event()
-BUFFER_VALUE = 1024
+BUFFER_VALUE = 16
 SOCKET_TIMEOUT = 0.1
 
 
