@@ -8,6 +8,8 @@ from threading import Event
 
 import chardet
 
+from images_downloader import ImageDownloader
+
 exit_event = Event()
 BUFFER_VALUE = 16
 SOCKET_TIMEOUT = 0.1
@@ -37,7 +39,9 @@ def receive_connection(connect: socket, client_address: socket,
 
                 encoding = chardet.detect(data)['encoding']
                 decoded_url = data.decode(encoding)
-                # downloading
+                image_downloader = ImageDownloader(decoded_url,
+                                                   path_to_download)
+                image_downloader.download_images()
             else:
                 print(f'Нет данных от:{client_address}')
                 break
@@ -81,8 +85,8 @@ def create_parser():
                         help='The port on which the server will start. '
                              '(8080 by default)',
                         )
-    parser.add_argument('path',
-                        'PATH', type=str,
+    parser.add_argument('-path',
+                        '-PATH', type=str,
                         help='The path where the images will be saved',
                         )
     return parser

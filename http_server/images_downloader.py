@@ -1,63 +1,62 @@
 import os
+import re
+import urllib
 
 import requests
-from bs4 import BeautifulSoup
 from tqdm import tqdm
 from urllib.parse import urlparse, urljoin
 
 
-def is_valid(url):
-    """
-    Проверяет, является ли url допустимым URL
-    """
-    parsed = urlparse(url)
-    return bool(parsed.netloc) and bool(parsed.scheme)
+class ImageDownloader:
+    def __init__(self, url : str, path : str):
+        self.SITE_URL = url
+        self.PATH_TO_DOWNLOAD = path
 
+    def _is_valid(self):
+        """
+        Проверяет, является ли url допустимым URL
+        """
+        parsed = urlparse(self.SITE_URL)
+        return bool(parsed.netloc) and bool(parsed.scheme)
 
-def get_all_urls_images(url):
-    """
-    Возвращает все URL‑адреса изображений по одному `url`
-    """
-    soup = BeautifulSoup(requests.get(url).content, "html.parser")
+    def get_image_urls(self):
+        """
+        Возвращает список ссылок на картинки сайта
+        """
+        response = requests.get(self.SITE_URL)
+        html = response.text
 
-    urls = []
-    for img in tqdm(soup.find_all("img"), "Ворую картинки с сайта"):
-        img_url = img.attrs.get("src")
-        if not img_url:
-            continue
+        image_urls = re.findall(r'<img.*?src="(.*?)".*?>', html)
 
-        img_url = urljoin(url, img_url)
+        image_urls = [urllib.parse.urljoin(self.SITE_URL, url) for url in
+                      image_urls]
 
-        try:
-            pos = img_url.index("?")
-            img_url = img_url[:pos]
-        except ValueError:
-            pass
+        return image_urls
 
-        if is_valid(img_url):
-            urls.append(img_url)
-    return urls
+    def _download(self, url):
+        """
+        Загружает файл по URL‑адресу и помещает его в папку `pathname`
+        """
 
+        if not os.path.isdir(self.PATH_TO_DOWNLOAD):
+            os.makedirs(self.PATH_TO_DOWNLOAD)
 
-def download(url, pathname):
-    """
-    Загружает файл по URL‑адресу и помещает его в папку `pathname`
-    """
+        response = requests.get(url, stream=True)
 
-    if not os.path.isdir(pathname):
-        os.makedirs(pathname)
+        file_size = int(response.headers.get("Content-Length", 0))
 
-    response = requests.get(url, stream=True)
+        filename = os.path.join(self.PATH_TO_DOWNLOAD, url.split("/")[-1])
 
-    file_size = int(response.headers.get("Content-Length", 0))
+        progress = tqdm(response.iter_content(1024), f"Скачиваю {filename}",
+                        total=file_size, unit="B", unit_scale=True,
+                        unit_divisor=1024)
 
-    filename = os.path.join(pathname, url.split("/")[-1])
+        with open(filename, "wb") as f:
+            for data in progress.iterable:
+                f.write(data)
+                progress.update(len(data))
 
-    progress = tqdm(response.iter_content(1024), f"Downloading {filename}",
-                    total=file_size, unit="B", unit_scale=True,
-                    unit_divisor=1024)
-
-    with open(filename, "wb") as f:
-        for data in progress.iterable:
-            f.write(data)
-            progress.update(len(data))
+    def download_images(self):
+        url_list = self.get_image_urls()
+        for url in url_list:
+            self._download(url)
