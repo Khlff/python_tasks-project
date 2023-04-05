@@ -7,17 +7,18 @@ from tqdm import tqdm
 from urllib.parse import urlparse, urljoin
 
 
+def _is_valid(url):
+    """
+    Проверяет, является ли url допустимым URL
+    """
+    parsed = urlparse(url)
+    return bool(parsed.netloc) and bool(parsed.scheme)
+
+
 class ImageDownloader:
-    def __init__(self, url : str, path : str):
+    def __init__(self, url: str, path: str):
         self.SITE_URL = url
         self.PATH_TO_DOWNLOAD = path
-
-    def _is_valid(self):
-        """
-        Проверяет, является ли url допустимым URL
-        """
-        parsed = urlparse(self.SITE_URL)
-        return bool(parsed.netloc) and bool(parsed.scheme)
 
     def get_image_urls(self):
         """
@@ -29,7 +30,8 @@ class ImageDownloader:
         image_urls = re.findall(r'<img.*?src="(.*?)".*?>', html)
 
         image_urls = [urllib.parse.urljoin(self.SITE_URL, url) for url in
-                      image_urls]
+                      image_urls if
+                      _is_valid(urllib.parse.urljoin(self.SITE_URL, url))]
 
         return image_urls
 

@@ -11,7 +11,7 @@ import chardet
 from images_downloader import ImageDownloader
 
 exit_event = Event()
-BUFFER_VALUE = 16
+BUFFER_VALUE = 1024
 SOCKET_TIMEOUT = 0.1
 
 
@@ -76,11 +76,11 @@ def start_server(server_port: int, path_to_download: string):
 def create_parser():
     script_name = os.path.basename(sys.argv[0])
     parser = argparse.ArgumentParser(
-        usage=f'{script_name} PATH [--p] [-h]',
+        usage=f'{script_name} PATH [--port] [-h]',
         description='It`s server that accepts the url to the site '
                     'in any encoding and saves all images from it.',
     )
-    parser.add_argument('--p',
+    parser.add_argument('--port',
                         '--port', type=int, default=8080,
                         help='The port on which the server will start. '
                              '(8080 by default)',

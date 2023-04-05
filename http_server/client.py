@@ -11,7 +11,7 @@ def create_socket(host, port, message):
 
 
 def send_message(sock, message):
-    encoded_message = message.encode() + b'\r\n'
+    encoded_message = message.encode()
     sock.send(encoded_message)
 
 
