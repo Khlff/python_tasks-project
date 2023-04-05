@@ -1,47 +1,69 @@
-import chardet
+import os
+import socket
+import subprocess
+import tempfile
+import time
+from unittest import mock
+from unittest.mock import patch, Mock, MagicMock
+
 import pytest
-
+import requests
 import server
+from test_fixtures import test_image_downloader
+from test_fixtures import mock_response
+from test_fixtures import mock_requests_get
 
-HOST = '127.0.0.1'
-PORT = 8080
-BUFFER_VALUE = 16
-
-
-@pytest.mark.run_this
-def test_short_message(awg_server, client_socket):
-    client_socket.send(b"Hello World!")
-    assert client_socket.recv(BUFFER_VALUE) == b"Hello World!"
+from images_downloader import ImageDownloader
 
 
-@pytest.mark.run_this
-def test_long_message(awg_server, client_socket):
-    message = b"Four score and seven years ago our fathers did stuff"
-    client_socket.send(message)
-    received_message = b''
-    size_expected = len(message)
-    size_received = 0
-    while True:
-        tmp_received_message = client_socket.recv(BUFFER_VALUE)
-        received_message += tmp_received_message
-        size_received += len(tmp_received_message)
-        if size_received >= size_expected:
-            break
+def test_is_valid_url(test_image_downloader):
+    test_image_downloader.SITE_URL = 'invalid_url'
+    assert not test_image_downloader._is_valid()
 
-    assert received_message == message
+    test_image_downloader.SITE_URL = 'http://validurl.com'
+    assert test_image_downloader._is_valid()
 
 
-@pytest.mark.run_this
-def test_message_not_utf8(awg_server, client_socket):
-    message = 'Привет'
-    client_socket.sendall(message.encode('cp866'))
-    received_message = client_socket.recv(BUFFER_VALUE)
-    encoding = chardet.detect(received_message)
-    assert encoding["encoding"] == 'utf-8'
+def test_get_image_urls(test_image_downloader, mock_requests_get):
+    mock_requests_get.return_value.text = """
+        <html>
+            <img src="http://example.com/img1.jpg">
+            <img src="http://example.com/img2.jpg">
+        </html>
+    """
+    assert test_image_downloader.get_image_urls() == [
+        'http://example.com/img1.jpg',
+        'http://example.com/img2.jpg'
+    ]
 
 
-@pytest.mark.run_this
-def test_shutdown(awg_server, client_socket):
-    server.exit_event.set()
-    if server.exit_event.is_set():
-        assert True
+def test_download():
+    url = "https://www.example.com/images/example.jpg"
+    downloader = ImageDownloader(url, "downloads")
+    downloader._download(url)
+    assert os.path.isfile("downloads/example.jpg") == True
+
+def test_download_images():
+    url = "https://www.example.com"
+    downloader = ImageDownloader(url, "downloads")
+    downloader.download_images()
+    assert len(os.listdir("downloads")) > 0
+
+
+def test_is_valid():
+    invalid_urls = [
+        'http://',
+        'vbfhsb',
+        'http:/jnvjf.dd'
+    ]
+    valid_urls = [
+        'http://example.com',
+        'https://example.com',
+        'http://www.example.com'
+    ]
+    for url in invalid_urls:
+        downloader = ImageDownloader(url, 'path/to/download')
+        assert downloader._is_valid() == False
+    for url in valid_urls:
+        downloader = ImageDownloader(url, 'path/to/download')
+        assert downloader._is_valid() == True

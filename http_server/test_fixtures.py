@@ -1,27 +1,30 @@
 import socket
 import subprocess
+import tempfile
 import time
+from unittest import mock
 
 import pytest
-
-HOST = '127.0.0.1'
-PORT = 8080
-BUFFER_VALUE = 16
-
-
-@pytest.fixture(scope="session")
-def awg_server():
-    print("loading server")
-    p = subprocess.Popen(["python3", "server.py"])
-    time.sleep(1)
-    yield p
-    p.terminate()
+from images_downloader import ImageDownloader
 
 
 @pytest.fixture
-def client_socket():
-    print("entering client part")
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as my_sock:
-        my_sock.connect((HOST, PORT))
-        yield my_sock
-        my_sock.close()
+def test_image_downloader():
+    return ImageDownloader('https://www.example.com', tempfile.mkdtemp())
+
+
+@pytest.fixture
+def mock_response():
+    response = mock.Mock()
+    response.headers = {
+        'Content-Length': 1000,
+    }
+    response.iter_content.return_value = b'fake_data'
+    return response
+
+
+@pytest.fixture
+def mock_requests_get(mock_response):
+    with mock.patch('requests.get') as mock_get:
+        mock_get.return_value = mock_response
+        yield mock_get

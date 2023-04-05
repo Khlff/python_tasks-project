@@ -11,7 +11,7 @@ def create_socket(host, port, message):
 
 
 def send_message(sock, message):
-    encoded_message = message.encode() + b'\r\n'
+    encoded_message = message.encode()
     sock.send(encoded_message)
 
 
@@ -22,7 +22,7 @@ def receive_answer(sock):
 
 def main():
     host = 'localhost'
-    port = 8080
+    port = 8082
     message = 'https://habr.com/ru/companies/ruvds/articles/727100/'
     server_answer = create_socket(host, port, message)
     print(server_answer)
