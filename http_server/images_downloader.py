@@ -16,9 +16,10 @@ def _is_valid(url):
 
 
 class ImageDownloader:
-    def __init__(self, url: str, path: str):
+    def __init__(self, url: str, path: str, connection):
         self.SITE_URL = url
         self.PATH_TO_DOWNLOAD = path
+        self.connection = connection
 
     def get_image_urls(self):
         """
@@ -56,6 +57,7 @@ class ImageDownloader:
         with open(filename, "wb") as f:
             for data in progress.iterable:
                 f.write(data)
+                # self.connection.(f"Скачиваю {filename}".encode())
                 progress.update(len(data))
 
     def download_images(self):
