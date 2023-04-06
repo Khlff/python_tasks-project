@@ -3,9 +3,9 @@
 
 * ### Run it
     #### Linux:
-        python3 server.py [port] [-help]
+        python3 server.py -path [--port] [-help]
     #### Windows:
-        python server.py [port] [-help]
+        python server.py -path [--port] [-help]
 
 ##  
 ###  Made by Nikita Khlopunov and Dmitry Kryuchkov

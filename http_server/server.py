@@ -2,10 +2,13 @@ import argparse
 import os
 import signal
 import socket
+import string
 import sys
 from threading import Event
 
 import chardet
+
+from images_downloader import ImageDownloader
 
 exit_event = Event()
 BUFFER_VALUE = 16
@@ -19,11 +22,13 @@ def signal_handler(_signal, _):
     exit_event.set()
 
 
-def receive_connection(connect: socket, client_address: socket):
+def receive_connection(connect: socket, client_address: socket,
+                       path_to_download: string):
     """
-    Получает данные из установленного соединения и отправляет их обратно в Uppercase
+    Получает url из установленного соединения и скачивает из неё все картинки
     :param connect: сокет с установленным соединением
     :param client_address: адрес клиента
+    :param path_to_download: путь куда будут скачаны картинки
     """
     while True:
         try:
@@ -33,10 +38,11 @@ def receive_connection(connect: socket, client_address: socket):
                 print(f'Данные получены от: {client_address}')
 
                 encoding = chardet.detect(data)['encoding']
-                decoded_data = data.decode(encoding)
-
-                data = decoded_data.encode('utf-8')
-                connect.sendall(data)
+                decoded_url = data.decode(encoding)
+                image_downloader = ImageDownloader(decoded_url,
+                                                   path_to_download, connect)
+                image_downloader.download_images()
+                connect.sendall('Успешное скачивание'.encode())
             else:
                 print(f'Нет данных от:{client_address}')
                 break
@@ -44,10 +50,11 @@ def receive_connection(connect: socket, client_address: socket):
             pass
 
 
-def start_server(server_port: int):
+def start_server(server_port: int, path_to_download: string):
     """
     Запускает сервер с переданным портом
-    :param server_port: int(port)
+    :param server_port: PORT
+    :param path_to_download: PATH
     """
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -58,7 +65,7 @@ def start_server(server_port: int):
         while not exit_event.is_set():
             try:
                 connect, client_address = sock.accept()
-                receive_connection(connect, client_address)
+                receive_connection(connect, client_address, path_to_download)
             except socket.timeout:
                 pass
         else:
@@ -70,14 +77,18 @@ def start_server(server_port: int):
 def create_parser():
     script_name = os.path.basename(sys.argv[0])
     parser = argparse.ArgumentParser(
-        usage=f'{script_name} [--p] [-h]',
+        usage=f'{script_name} PATH [--port] [-h]',
         description='It`s server that accepts the url to the site '
                     'in any encoding and saves all images from it.',
     )
-    parser.add_argument('--p',
+    parser.add_argument('--port',
                         '--port', type=int, default=8080,
                         help='The port on which the server will start. '
                              '(8080 by default)',
+                        )
+    parser.add_argument('-path',
+                        '-PATH', type=str,
+                        help='The path where the images will be saved',
                         )
     return parser
 
@@ -86,8 +97,9 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    server_port = args.p
-    start_server(server_port)
+    server_port = args.port
+    path_to_download = args.path
+    start_server(server_port, path_to_download)
 
 
 if __name__ == '__main__':
