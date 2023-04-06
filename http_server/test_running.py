@@ -9,9 +9,7 @@ from unittest.mock import patch, Mock, MagicMock
 import pytest
 import requests
 import server
-from test_fixtures import test_image_downloader
-from test_fixtures import mock_response
-from test_fixtures import mock_requests_get
+from test_fixtures import *
 
 from images_downloader import ImageDownloader
 
@@ -41,7 +39,8 @@ def test_download():
     url = "https://www.example.com/images/example.jpg"
     downloader = ImageDownloader(url, "downloads")
     downloader._download(url)
-    assert os.path.isfile("downloads/example.jpg") == True
+    assert os.path.isfile("downloads/example.jpg")
+
 
 def test_download_images():
     url = "https://www.example.com"
