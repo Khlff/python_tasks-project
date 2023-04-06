@@ -22,7 +22,7 @@ def receive_answer(sock):
 
 def main():
     host = 'localhost'
-    port = 8080
+    port = 8082
     message = 'https://habr.com/ru/companies/ruvds/articles/727100/'
     server_answer = create_socket(host, port, message)
     print(server_answer)
