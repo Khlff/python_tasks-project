@@ -40,8 +40,9 @@ def receive_connection(connect: socket, client_address: socket,
                 encoding = chardet.detect(data)['encoding']
                 decoded_url = data.decode(encoding)
                 image_downloader = ImageDownloader(decoded_url,
-                                                   path_to_download)
+                                                   path_to_download, connect)
                 image_downloader.download_images()
+                connect.sendall('Успешное скачивание'.encode())
             else:
                 print(f'Нет данных от:{client_address}')
                 break
@@ -96,7 +97,7 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    server_port = args.p
+    server_port = args.port
     path_to_download = args.path
     start_server(server_port, path_to_download)
 
