@@ -20,7 +20,7 @@ def mock_response():
         'Content-Length': 1000,
     }
     response.iter_content.return_value = b'fake_data'
-    return response
+    yield response
 
 
 @pytest.fixture
