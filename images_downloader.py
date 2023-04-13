@@ -16,10 +16,9 @@ def _is_valid(url: str) -> bool:
 
 
 class ImageDownloader:
-    def __init__(self, url: str, path: str, connection):
+    def __init__(self, url: str, path: str):
         self.SITE_URL = url
         self.PATH_TO_DOWNLOAD = path
-        self.connection = connection
         self.TQDM_CHUNK_SIZE = 1024
         self.TQDM_UNIT_DIVISOR_SIZE = 1024
 
