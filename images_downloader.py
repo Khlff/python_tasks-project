@@ -7,7 +7,7 @@ from tqdm import tqdm
 from urllib.parse import urlparse, urljoin
 
 
-def _is_valid(url):
+def _is_valid(url: str) -> bool:
     """
     Проверяет, является ли url допустимым URL
     """
@@ -20,8 +20,10 @@ class ImageDownloader:
         self.SITE_URL = url
         self.PATH_TO_DOWNLOAD = path
         self.connection = connection
+        self.TQDM_CHUNK_SIZE = 1024
+        self.TQDM_UNIT_DIVISOR_SIZE = 1024
 
-    def get_image_urls(self):
+    def get_image_urls(self) -> list:
         """
         Возвращает список ссылок на картинки сайта
         """
@@ -30,13 +32,15 @@ class ImageDownloader:
 
         image_urls = re.findall(r'<img.*?src="(.*?)".*?>', html)
 
-        image_urls = [urllib.parse.urljoin(self.SITE_URL, url) for url in
-                      image_urls if
-                      _is_valid(urllib.parse.urljoin(self.SITE_URL, url))]
+        image_urls = [
+            urllib.parse.urljoin(self.SITE_URL, url)
+            for url in image_urls
+            if _is_valid(urllib.parse.urljoin(self.SITE_URL, url))
+        ]
 
         return image_urls
 
-    def _download(self, url):
+    def _download(self, url: str) -> None:
         """
         Загружает файл по URL‑адресу и помещает его в папку `pathname`
         """
@@ -45,22 +49,23 @@ class ImageDownloader:
             os.makedirs(self.PATH_TO_DOWNLOAD)
 
         response = requests.get(url, stream=True)
-
         file_size = int(response.headers.get("Content-Length", 0))
-
         filename = os.path.join(self.PATH_TO_DOWNLOAD, url.split("/")[-1])
-
-        progress = tqdm(response.iter_content(1024), f"Скачиваю {filename}",
-                        total=file_size, unit="B", unit_scale=True,
-                        unit_divisor=1024)
+        progress = tqdm(
+            response.iter_content(self.TQDM_CHUNK_SIZE),
+            f"Скачиваю {filename}",
+            total=file_size,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=self.TQDM_UNIT_DIVISOR_SIZE
+        )
 
         with open(filename, "wb") as f:
             for data in progress.iterable:
                 f.write(data)
-                # self.connection.(f"Скачиваю {filename}".encode())
                 progress.update(len(data))
 
-    def download_images(self):
+    def download_images(self) -> None:
         url_list = self.get_image_urls()
         for url in url_list:
             self._download(url)
