@@ -11,7 +11,7 @@ import chardet
 from images_downloader import ImageDownloader
 
 exit_event = Event()
-BUFFER_VALUE = 16
+BUFFER_VALUE = 1024
 SOCKET_TIMEOUT = 0.1
 
 
