@@ -1,4 +1,5 @@
 import socket
+import tkinter
 
 
 def create_socket(host, port, message):
@@ -26,7 +27,6 @@ def main():
     message = 'https://habr.com/ru/companies/kts/articles/560058/'
     server_answer = create_socket(host, port, message)
     print(server_answer)
-
 
 if __name__ == '__main__':
     main()

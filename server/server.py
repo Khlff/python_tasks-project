@@ -8,7 +8,7 @@ from threading import Event
 
 import chardet
 
-from images_downloader import ImageDownloader
+from http_server.server.images_downloader import ImageDownloader
 
 exit_event = Event()
 BUFFER_VALUE = 1024

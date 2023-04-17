@@ -1,18 +1,6 @@
 import os
-import socket
-import subprocess
-import tempfile
-import time
-from unittest import mock
-from unittest.mock import patch, Mock, MagicMock
 
-import pytest
-import requests
-import server
-from test_fixtures import test_image_downloader, mock_requests_get, \
-    mock_response
-
-from images_downloader import ImageDownloader, _is_valid
+from http_server.server.images_downloader import ImageDownloader, _is_valid
 
 
 def test_is_valid_url():
