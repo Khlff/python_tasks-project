@@ -8,7 +8,7 @@ from threading import Event
 
 import chardet
 
-from http_server.server.images_downloader import ImageDownloader
+from server_directory import images_downloader
 
 exit_event = Event()
 BUFFER_VALUE = 1024
@@ -43,8 +43,8 @@ def receive_connection(connect: socket,
             print(f'Data received from: {client_address}')
             encoding = chardet.detect(data)['encoding']
             decoded_url = data.decode(encoding)
-            image_downloader = ImageDownloader(
-                decoded_url, path_to_download, connect
+            image_downloader = images_downloader.ImageDownloader(
+                decoded_url, path_to_download
             )
             image_downloader.download_images()
 
@@ -55,8 +55,8 @@ def receive_connection(connect: socket,
 
 def start_server(server_port: int, path_to_download: string):
     """
-    Starts the server
-    :param server_port: port on which the server will be started
+    Starts the server_directory
+    :param server_port: port on which the server_directory will be started
     :param path_to_download: the path where the images will be downloaded
     """
 
@@ -79,7 +79,7 @@ def create_parser() -> argparse.ArgumentParser:
     script_name = os.path.basename(sys.argv[0])
     parser = argparse.ArgumentParser(
         usage=f'{script_name} PATH [--port] [-h]',
-        description='It`s server that accepts the url to the site '
+        description='It`s server_directory that accepts the url to the site '
                     'in any encoding and saves all images from it.',
     )
 
@@ -88,7 +88,7 @@ def create_parser() -> argparse.ArgumentParser:
         '--port',
         type=int,
         default=8080,
-        help='The port on which the server will start. '
+        help='The port on which the server_directory will start. '
              '(8080 by default)',
     )
     parser.add_argument('-path',
