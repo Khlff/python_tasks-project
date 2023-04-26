@@ -8,7 +8,7 @@ from threading import Event
 
 import chardet
 
-from server_directory import images_downloader
+from images_downloader import ImageDownloader
 
 exit_event = Event()
 BUFFER_VALUE = 1024
@@ -22,18 +22,19 @@ def signal_handler(_signal: signal, _) -> None:
     exit_event.set()
 
 
-def receive_connection(connect: socket,
+def receive_connection(sock: socket,
                        client_address: socket,
                        path_to_download: string) -> None:
     """
     Gets the url from the established connection and downloads all the images from it
-    :param connect: socket with an established connection
+    :param sock: socket with an established connection
     :param client_address: client address
     :param path_to_download: the path where the images will be downloaded
     """
+
     while True:
         try:
-            data = connect.recv(BUFFER_VALUE)
+            data = sock.recv(BUFFER_VALUE)
             print(f'Connected: {client_address}')
 
             if not data:
@@ -43,14 +44,17 @@ def receive_connection(connect: socket,
             print(f'Data received from: {client_address}')
             encoding = chardet.detect(data)['encoding']
             decoded_url = data.decode(encoding)
-            image_downloader = images_downloader.ImageDownloader(
-                decoded_url, path_to_download
+            image_downloader = ImageDownloader(
+                decoded_url,
+                path_to_download
             )
+
             image_downloader.download_images()
 
-            connect.sendall('Successful download'.encode())
-        except socket.timeout:
-            pass
+            sock.sendall(
+                f'Successful download {image_downloader.total_downloaded} pictures'.encode())
+        except ConnectionResetError:
+            break
 
 
 def start_server(server_port: int, path_to_download: string):
@@ -91,11 +95,12 @@ def create_parser() -> argparse.ArgumentParser:
         help='The port on which the server_directory will start. '
              '(8080 by default)',
     )
-    parser.add_argument('-path',
-                        '-PATH',
-                        type=str,
-                        help='The path where the images will be saved',
-                        )
+    parser.add_argument(
+        '-path',
+        '-PATH',
+        type=str,
+        help='The path where the images will be saved',
+    )
     return parser
 
 

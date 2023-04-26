@@ -1,10 +1,13 @@
 import os
+import queue
 import re
 import urllib
 
 import requests
 from tqdm import tqdm
 from urllib.parse import urlparse, urljoin
+
+LOG_SIZE = 20
 
 
 def _is_valid(url: str) -> bool:
@@ -21,6 +24,7 @@ class ImageDownloader:
         self.PATH_TO_DOWNLOAD = path
         self.TQDM_CHUNK_SIZE = 1024
         self.TQDM_UNIT_DIVISOR_SIZE = 1024
+        self.total_downloaded = 0
 
     def get_image_urls(self) -> list:
         """
@@ -36,7 +40,7 @@ class ImageDownloader:
             for url in image_urls
             if _is_valid(urllib.parse.urljoin(self.SITE_URL, url))
         ]
-
+        self.total_downloaded = len(image_urls)
         return image_urls
 
     def _download(self, url: str) -> None:
@@ -47,6 +51,7 @@ class ImageDownloader:
         if not os.path.isdir(self.PATH_TO_DOWNLOAD):
             os.makedirs(self.PATH_TO_DOWNLOAD)
 
+        self.total_downloaded += 1
         response = requests.get(url, stream=True)
         file_size = int(response.headers.get("Content-Length", 0))
         filename = os.path.join(self.PATH_TO_DOWNLOAD, url.split("/")[-1])
