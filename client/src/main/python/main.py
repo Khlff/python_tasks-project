@@ -1,10 +1,5 @@
-import threading
-
-from fbs_runtime.application_context.PyQt5 import ApplicationContext
-
 import sys
 
-from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QGridLayout,
@@ -37,11 +32,11 @@ class ServerGUI(QWidget):
         self.port_input = QLineEdit('8080')
         self.grid.addWidget(self.port_input, 2, 1)
 
-        self.start_button = QPushButton('Start')
+        self.start_button = QPushButton('Download')
         self.grid.addWidget(self.start_button, 3, 0, 1, 2)
         self.start_button.clicked.connect(self.start_client)
 
-        self.response_label = QLabel('Server Response:')
+        self.response_label = QLabel('Log:')
         self.grid.addWidget(self.response_label, 4, 0)
         self.response_field = QTextEdit()
         self.response_field.setReadOnly(True)
@@ -51,7 +46,11 @@ class ServerGUI(QWidget):
 
         self.sender = None
 
-    def check_input(self):
+    def check_input(self) -> bool:
+        """
+        Checks whether the gui fields are filled in
+        @return: True if the gui fields are filled correctly
+        """
         if not self.url_input.text():
             self._print_error('Site URL cannot be empty.')
             return False
@@ -66,21 +65,42 @@ class ServerGUI(QWidget):
 
         return True
 
-    def _print_log(self, text):
+    def _print_log(self, text: str):
+        """
+        Outputs a string in the log field
+        @param: string to print
+        """
         cursor = self.response_field.textCursor()
         cursor.movePosition(QTextCursor.End)
         cursor.insertText(text + '\n')
         self.response_field.setTextCursor(cursor)
         self.response_field.ensureCursorVisible()
 
-    def _print_error(self, message):
+    def _print_error(self, message: str):
+        """
+         Outputs a error box
+         @param: error message
+         """
         error_box = QMessageBox()
         error_box.setIcon(QMessageBox.Warning)
         error_box.setWindowTitle('Error')
         error_box.setText(message)
         error_box.exec_()
 
+    def _print_status(self, message: str):
+        """
+         Outputs a status box
+         @param: status message
+         """
+        error_box = QMessageBox()
+        error_box.setWindowTitle('')
+        error_box.setText(message)
+        error_box.exec_()
+
     def start_client(self):
+        """
+        The function that starts after pressing the Start button
+        """
         if not self.check_input():
             return
 
@@ -88,18 +108,13 @@ class ServerGUI(QWidget):
             self.address_input.text(),
             int(self.port_input.text())
         )
-        self._print_log('Started')
+        self._print_status('Download started')
         self.sender.send_message(self.url_input.text())
-
         answer = self.sender.get_log()
         while not answer:
             answer = self.sender.get_log()
         self._print_log(answer)
-
-    def stop_client(self):
-        if self.sender:
-            self.sender.close()
-        QCoreApplication.quit()
+        self._print_status('Successful download')
 
 
 if __name__ == '__main__':

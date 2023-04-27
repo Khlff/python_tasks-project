@@ -1,6 +1,6 @@
 import os
-
-from http_server.server.images_downloader import ImageDownloader, _is_valid
+from test_fixtures import test_image_downloader, mock_requests_get, mock_response
+from server_directory.images_downloader import ImageDownloader, _is_valid
 
 
 def test_is_valid_url():

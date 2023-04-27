@@ -50,24 +50,26 @@ class ImageDownloader:
 
         if not os.path.isdir(self.PATH_TO_DOWNLOAD):
             os.makedirs(self.PATH_TO_DOWNLOAD)
+        try:
+            self.total_downloaded += 1
+            response = requests.get(url, stream=True)
+            file_size = int(response.headers.get("Content-Length", 0))
+            filename = os.path.join(self.PATH_TO_DOWNLOAD, url.split("/")[-1])
+            progress = tqdm(
+                response.iter_content(self.TQDM_CHUNK_SIZE),
+                f"Скачиваю {filename}",
+                total=file_size,
+                unit="B",
+                unit_scale=True,
+                unit_divisor=self.TQDM_UNIT_DIVISOR_SIZE
+            )
 
-        self.total_downloaded += 1
-        response = requests.get(url, stream=True)
-        file_size = int(response.headers.get("Content-Length", 0))
-        filename = os.path.join(self.PATH_TO_DOWNLOAD, url.split("/")[-1])
-        progress = tqdm(
-            response.iter_content(self.TQDM_CHUNK_SIZE),
-            f"Скачиваю {filename}",
-            total=file_size,
-            unit="B",
-            unit_scale=True,
-            unit_divisor=self.TQDM_UNIT_DIVISOR_SIZE
-        )
-
-        with open(filename, "wb") as f:
-            for data in progress.iterable:
-                f.write(data)
-                progress.update(len(data))
+            with open(filename, "wb") as f:
+                for data in progress.iterable:
+                    f.write(data)
+                    progress.update(len(data))
+        except requests.exceptions.ConnectionError:
+            pass
 
     def download_images(self) -> None:
         url_list = self.get_image_urls()
