@@ -2,6 +2,7 @@ import os
 import queue
 import re
 import urllib
+from socket import socket
 
 import requests
 from tqdm import tqdm
@@ -33,17 +34,16 @@ class ImageDownloader:
         response = requests.get(self.SITE_URL)
         html = response.text
 
-        image_urls = re.findall(r'<img.*?src="(.*?)".*?>', html)
+        image_urls = re.findall(r'<img.*?src=["\']?(.*?\.(?:jpg|jpeg|png))["\']?.*?>', html)
 
         image_urls = [
             urllib.parse.urljoin(self.SITE_URL, url)
             for url in image_urls
             if _is_valid(urllib.parse.urljoin(self.SITE_URL, url))
         ]
-        self.total_downloaded = len(image_urls)
         return image_urls
 
-    def _download(self, url: str) -> None:
+    def _download(self, url: str, sock: socket) -> None:
         """
         Загружает файл по URL‑адресу и помещает его в папку `pathname`
         """
@@ -51,7 +51,6 @@ class ImageDownloader:
         if not os.path.isdir(self.PATH_TO_DOWNLOAD):
             os.makedirs(self.PATH_TO_DOWNLOAD)
         try:
-            self.total_downloaded += 1
             response = requests.get(url, stream=True)
             file_size = int(response.headers.get("Content-Length", 0))
             filename = os.path.join(self.PATH_TO_DOWNLOAD, url.split("/")[-1])
@@ -68,10 +67,13 @@ class ImageDownloader:
                 for data in progress.iterable:
                     f.write(data)
                     progress.update(len(data))
+            sock.sendall(f'Downloaded picture {url.split("/")[-1]}'.encode())
+            self.total_downloaded += 1
         except requests.exceptions.ConnectionError:
             pass
 
-    def download_images(self) -> None:
+    def download_images(self, sock) -> None:
         url_list = self.get_image_urls()
         for url in url_list:
-            self._download(url)
+            self._download(url, sock)
+

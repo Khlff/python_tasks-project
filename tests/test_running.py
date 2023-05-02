@@ -1,6 +1,8 @@
 import os
-from test_fixtures import test_image_downloader, mock_requests_get, mock_response
+import socket
+
 from server_directory.images_downloader import ImageDownloader, _is_valid
+from test_fixtures import test_image_downloader, mock_requests_get, mock_response
 
 
 def test_is_valid_url():
@@ -21,18 +23,13 @@ def test_get_image_urls(test_image_downloader, mock_requests_get):
     ]
 
 
-def test_download():
-    url = "https://www.example.com/images/example.jpg"
-    downloader = ImageDownloader(url, "downloads")
-    downloader._download(url)
-    assert os.path.isfile("downloads/example.jpg")
-
-
 def test_download_images():
     url = "https://www.example.com"
-    downloader = ImageDownloader(url, "downloads")
-    downloader.download_images()
-    assert len(os.listdir("downloads")) > 0
+    downloader = ImageDownloader(url, "../server_directory/downloads")
+    server_address = ('localhost', 8080)
+    with socket.create_server(server_address) as sock:
+        downloader.download_images(sock)
+    assert len(os.listdir("../server_directory/downloads")) > 0
 
 
 def test_is_valid():

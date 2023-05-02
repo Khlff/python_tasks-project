@@ -49,10 +49,12 @@ def receive_connection(sock: socket,
                 path_to_download
             )
 
-            image_downloader.download_images()
+            image_downloader.download_images(sock)
 
             sock.sendall(
-                f'Downloaded {image_downloader.total_downloaded} pictures from {decoded_url}'.encode())
+                f'\nDownloaded {image_downloader.total_downloaded} pictures from {decoded_url}'.encode())
+
+
         except ConnectionResetError:
             break
 

@@ -1,12 +1,13 @@
 import socket
 import threading
 import queue
+from PyQt5.QtCore import QThread
 
 MAX_BUFFER = 20
 
 
-class WebSender:
-    def __init__(self, ip: str, port: int):
+class WebSender(QThread):
+    def __init__(self, ip: str, port: int, log_updated: threading.Event):
         """
         Initialize a WebSender object.
 
@@ -14,11 +15,14 @@ class WebSender:
             ip (str): The IP address of the server.
             port (int): The port number of the server.
         """
+        QThread.__init__(self)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((ip, port))
         self.message_buffer = queue.Queue(maxsize=MAX_BUFFER)
         self.thread = threading.Thread(target=self._recv_thread, daemon=True)
         self.thread.start()
+        self.log_updated = log_updated
+        self.buffer_log = threading.Lock()
 
     def __del__(self):
         """
@@ -33,7 +37,10 @@ class WebSender:
         while True:
             data = self.sock.recv(1024)
             if data:
-                self.message_buffer.put(data.decode())
+                with self.buffer_log:
+                    self.message_buffer.put(data.decode())
+                self.log_updated.set()
+
 
     def send_message(self, message: str):
         """
@@ -52,7 +59,8 @@ class WebSender:
         Returns:
             str: The log message. Returns an empty string if the message buffer is empty.
         """
-        if not self.message_buffer.empty():
-            return self.message_buffer.get()
-        else:
-            return ''
+        with self.buffer_log:
+            if not self.message_buffer.empty():
+                return self.message_buffer.get()
+            else:
+                return ''

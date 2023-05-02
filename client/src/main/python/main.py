@@ -1,4 +1,5 @@
 import sys
+import threading
 
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import (
@@ -7,6 +8,9 @@ from PyQt5.QtWidgets import (
 )
 
 from web_sender import WebSender
+
+log_updated = threading.Event()
+close_event = threading.Event()
 
 
 class ServerGUI(QWidget):
@@ -97,6 +101,14 @@ class ServerGUI(QWidget):
         error_box.setText(message)
         error_box.exec_()
 
+    def logger(self):
+        while True:
+            log_updated.wait()
+            answer = self.sender.get_log()
+            while answer:
+                self._print_log(answer)
+                answer = self.sender.get_log()
+
     def start_client(self):
         """
         The function that starts after pressing the Start button
@@ -106,15 +118,15 @@ class ServerGUI(QWidget):
 
         self.sender = WebSender(
             self.address_input.text(),
-            int(self.port_input.text())
+            int(self.port_input.text()),
+            log_updated
         )
+
         self._print_status('Download started')
         self.sender.send_message(self.url_input.text())
-        answer = self.sender.get_log()
-        while not answer:
-            answer = self.sender.get_log()
-        self._print_log(answer)
-        self._print_status('Successful download')
+
+        logger = threading.Thread(target=self.logger, daemon=True)
+        logger.start()
 
 
 if __name__ == '__main__':
