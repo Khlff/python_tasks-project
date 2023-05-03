@@ -1,19 +1,18 @@
 import os
-import queue
 import re
 import urllib
 from socket import socket
+from urllib.parse import urlparse
 
 import requests
 from tqdm import tqdm
-from urllib.parse import urlparse, urljoin
 
 LOG_SIZE = 20
 
 
 def _is_valid(url: str) -> bool:
     """
-    Проверяет, является ли url допустимым URL
+    Checks if the url is a valid URL
     """
     parsed = urlparse(url)
     return bool(parsed.netloc) and bool(parsed.scheme)
@@ -29,12 +28,13 @@ class ImageDownloader:
 
     def get_image_urls(self) -> list:
         """
-        Возвращает список ссылок на картинки сайта
+        Returns a list of links to site images
         """
         response = requests.get(self.SITE_URL)
         html = response.text
 
-        image_urls = re.findall(r'<img.*?src=["\']?(.*?\.(?:jpg|jpeg|png))["\']?.*?>', html)
+        image_urls = re.findall(
+            r'<img.*?src=["\']?(.*?\.(?:jpg|jpeg|png))["\']?.*?>', html)
 
         image_urls = [
             urllib.parse.urljoin(self.SITE_URL, url)
@@ -45,7 +45,7 @@ class ImageDownloader:
 
     def _download(self, url: str, sock: socket) -> None:
         """
-        Загружает файл по URL‑адресу и помещает его в папку `pathname`
+        Downloads the file by URL and places it in the `pathname` folder
         """
 
         if not os.path.isdir(self.PATH_TO_DOWNLOAD):
@@ -69,11 +69,14 @@ class ImageDownloader:
                     progress.update(len(data))
             sock.sendall(f'Downloaded picture {url.split("/")[-1]}'.encode())
             self.total_downloaded += 1
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as ex:
             pass
 
     def download_images(self, sock) -> None:
+        """
+        Downloads all images from the site
+        :param sock: socket with an established connection
+        """
         url_list = self.get_image_urls()
         for url in url_list:
             self._download(url, sock)
-

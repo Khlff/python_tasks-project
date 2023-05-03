@@ -52,11 +52,13 @@ def receive_connection(sock: socket,
             image_downloader.download_images(sock)
 
             sock.sendall(
-                f'\nDownloaded {image_downloader.total_downloaded} pictures from {decoded_url}'.encode())
+                f'\nDownloaded {image_downloader.total_downloaded}'
+                f' pictures from {decoded_url}'.encode()
+            )
 
 
-        except ConnectionResetError:
-            break
+        except ConnectionResetError as ex:
+            pass
 
 
 def start_server(server_port: int, path_to_download: string):
@@ -75,7 +77,7 @@ def start_server(server_port: int, path_to_download: string):
             try:
                 connect, client_address = sock.accept()
                 receive_connection(connect, client_address, path_to_download)
-            except socket.timeout:
+            except socket.timeout as ex:
                 pass
         else:
             print('Exit from program...')

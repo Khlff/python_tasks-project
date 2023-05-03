@@ -14,7 +14,14 @@ close_event = threading.Event()
 
 
 class ServerGUI(QWidget):
+    """
+    Class for the client application
+    """
+
     def __init__(self):
+        """
+        Initialize a gui object.
+        """
         super().__init__()
 
         self.setWindowTitle('Images Downloader Client')
@@ -96,10 +103,10 @@ class ServerGUI(QWidget):
          Outputs a status box
          @param: status message
          """
-        error_box = QMessageBox()
-        error_box.setWindowTitle('')
-        error_box.setText(message)
-        error_box.exec_()
+        status_box = QMessageBox()
+        status_box.setWindowTitle('')
+        status_box.setText(message)
+        status_box.exec_()
 
     def logger(self):
         while True:
