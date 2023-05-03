@@ -22,18 +22,19 @@ def signal_handler(_signal: signal, _) -> None:
     exit_event.set()
 
 
-def receive_connection(connect: socket,
+def receive_connection(sock: socket,
                        client_address: socket,
                        path_to_download: string) -> None:
     """
     Gets the url from the established connection and downloads all the images from it
-    :param connect: socket with an established connection
+    :param sock: socket with an established connection
     :param client_address: client address
     :param path_to_download: the path where the images will be downloaded
     """
+
     while True:
         try:
-            data = connect.recv(BUFFER_VALUE)
+            data = sock.recv(BUFFER_VALUE)
             print(f'Connected: {client_address}')
 
             if not data:
@@ -44,19 +45,26 @@ def receive_connection(connect: socket,
             encoding = chardet.detect(data)['encoding']
             decoded_url = data.decode(encoding)
             image_downloader = ImageDownloader(
-                decoded_url, path_to_download, connect
+                decoded_url,
+                path_to_download
             )
-            image_downloader.download_images()
 
-            connect.sendall('Successful download'.encode())
-        except socket.timeout:
+            image_downloader.download_images(sock)
+
+            sock.sendall(
+                f'\nDownloaded {image_downloader.total_downloaded}'
+                f' pictures from {decoded_url}'.encode()
+            )
+
+
+        except ConnectionResetError as ex:
             pass
 
 
 def start_server(server_port: int, path_to_download: string):
     """
-    Starts the server
-    :param server_port: port on which the server will be started
+    Starts the server_directory
+    :param server_port: port on which the server_directory will be started
     :param path_to_download: the path where the images will be downloaded
     """
 
@@ -69,7 +77,7 @@ def start_server(server_port: int, path_to_download: string):
             try:
                 connect, client_address = sock.accept()
                 receive_connection(connect, client_address, path_to_download)
-            except socket.timeout:
+            except socket.timeout as ex:
                 pass
         else:
             print('Exit from program...')
@@ -79,7 +87,7 @@ def create_parser() -> argparse.ArgumentParser:
     script_name = os.path.basename(sys.argv[0])
     parser = argparse.ArgumentParser(
         usage=f'{script_name} PATH [--port] [-h]',
-        description='It`s server that accepts the url to the site '
+        description='It`s server_directory that accepts the url to the site '
                     'in any encoding and saves all images from it.',
     )
 
@@ -88,14 +96,15 @@ def create_parser() -> argparse.ArgumentParser:
         '--port',
         type=int,
         default=8080,
-        help='The port on which the server will start. '
+        help='The port on which the server_directory will start. '
              '(8080 by default)',
     )
-    parser.add_argument('-path',
-                        '-PATH',
-                        type=str,
-                        help='The path where the images will be saved',
-                        )
+    parser.add_argument(
+        '-path',
+        '-PATH',
+        type=str,
+        help='The path where the images will be saved',
+    )
     return parser
 
 
