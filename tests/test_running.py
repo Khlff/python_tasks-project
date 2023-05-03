@@ -25,11 +25,13 @@ def test_get_image_urls(test_image_downloader, mock_requests_get):
 
 def test_download_images():
     url = "https://www.example.com"
-    downloader = ImageDownloader(url, "../server_directory/downloads")
+    if not os.path.isdir("../tests/downloads"):
+        os.makedirs("../tests/downloads")
+    downloader = ImageDownloader(url, "../tests/downloads")
     server_address = ('localhost', 8080)
     with socket.create_server(server_address) as sock:
         downloader.download_images(sock)
-    assert len(os.listdir("../server_directory/downloads")) > 0
+    assert len(os.listdir("../tests/downloads")) > 0
 
 
 def test_is_valid():

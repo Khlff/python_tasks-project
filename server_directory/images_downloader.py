@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import requests
 from tqdm import tqdm
 
-LOG_SIZE = 20
+from server_directory.constants import TQDM_CHUNK_SIZE, TQDM_UNIT_DIVISOR_SIZE
 
 
 def _is_valid(url: str) -> bool:
@@ -21,9 +21,7 @@ def _is_valid(url: str) -> bool:
 class ImageDownloader:
     def __init__(self, url: str, path: str):
         self.SITE_URL = url
-        self.PATH_TO_DOWNLOAD = path
-        self.TQDM_CHUNK_SIZE = 1024
-        self.TQDM_UNIT_DIVISOR_SIZE = 1024
+        self.path_to_download = path
         self.total_downloaded = 0
 
     def get_image_urls(self) -> list:
@@ -48,19 +46,19 @@ class ImageDownloader:
         Downloads the file by URL and places it in the `pathname` folder
         """
 
-        if not os.path.isdir(self.PATH_TO_DOWNLOAD):
-            os.makedirs(self.PATH_TO_DOWNLOAD)
+        if not os.path.isdir(self.path_to_download):
+            os.makedirs(self.path_to_download)
         try:
             response = requests.get(url, stream=True)
             file_size = int(response.headers.get("Content-Length", 0))
-            filename = os.path.join(self.PATH_TO_DOWNLOAD, url.split("/")[-1])
+            filename = os.path.join(self.path_to_download, url.split("/")[-1])
             progress = tqdm(
-                response.iter_content(self.TQDM_CHUNK_SIZE),
+                response.iter_content(TQDM_CHUNK_SIZE),
                 f"Скачиваю {filename}",
                 total=file_size,
                 unit="B",
                 unit_scale=True,
-                unit_divisor=self.TQDM_UNIT_DIVISOR_SIZE
+                unit_divisor=TQDM_UNIT_DIVISOR_SIZE
             )
 
             with open(filename, "wb") as f:
