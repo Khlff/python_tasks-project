@@ -1,8 +1,11 @@
 import os
 import socket
+from unittest.mock import MagicMock, patch
+import shutil
 
 from server_directory.images_downloader import ImageDownloader, _is_valid
-from test_fixtures import test_image_downloader, mock_requests_get, mock_response
+from test_fixtures import test_image_downloader, mock_requests_get, \
+    mock_response
 
 
 def test_is_valid_url():
@@ -23,13 +26,30 @@ def test_get_image_urls(test_image_downloader, mock_requests_get):
     ]
 
 
-def test_download_images():
-    url = "https://www.example.com"
-    downloader = ImageDownloader(url, "../server_directory/downloads")
-    server_address = ('localhost', 8080)
-    with socket.create_server(server_address) as sock:
-        downloader.download_images(sock)
-    assert len(os.listdir("../server_directory/downloads")) > 0
+def test_download_images(tmpdir):
+    download_dir = tmpdir.mkdir("test_images")
+    url = "https://example.com"
+    downloader = ImageDownloader(url, download_dir)
+
+    mock_socket = MagicMock()
+
+    with patch("requests.get") as mock_get:
+        mock_get.return_value.text = """
+            <html>
+                <body>
+                    <img src="https://example.com/image1.jpg">
+                    <img src="https://example.com/image2.jpg">
+                    <img src="https://example.com/image3.png">
+                </body>
+            </html>
+        """
+        downloader.download_images(mock_socket)
+
+    expected_files = ["image1.jpg", "image2.jpg", "image3.png"]
+    expected_count = len(expected_files)
+    assert downloader.total_downloaded == expected_count
+    for file in expected_files:
+        assert os.path.isfile(os.path.join(download_dir, file))
 
 
 def test_is_valid():
