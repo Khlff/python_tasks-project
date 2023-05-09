@@ -62,6 +62,6 @@ def test_is_valid():
         'http://www.example.com'
     ]
     for url in invalid_urls:
-        assert _is_valid(url) == False
+        assert  not _is_valid(url) 
     for url in valid_urls:
         assert _is_valid(url) == True

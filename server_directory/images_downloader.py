@@ -31,8 +31,10 @@ class ImageDownloader:
         response = requests.get(self.SITE_URL)
         html = response.text
 
-        image_urls = re.findall(
-            r'<img.*?src=["\']?(.*?\.(?:jpg|jpeg|png))["\']?.*?>', html)
+        re_pattern = re.compile(
+            r'<img.*?src=["\']?(.*?\.(?:jpg|jpeg|png))["\']?.*?>'
+        )
+        image_urls = re_pattern.findall(html)
 
         image_urls = [
             urllib.parse.urljoin(self.SITE_URL, url)

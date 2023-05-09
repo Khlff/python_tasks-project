@@ -1,6 +1,8 @@
 import socket
 import threading
 import queue
+from typing import Optional
+
 from PyQt5.QtCore import QThread
 
 MAX_BUFFER = 20
@@ -52,15 +54,13 @@ class WebSender(QThread):
         encoded_message = message.encode()
         self.sock.sendall(encoded_message)
 
-    def get_log(self) -> str:
+    def get_log(self) -> Optional[str]:
         """
         Get the log message from the message buffer.
 
         Returns:
-            str: The log message. Returns an empty string if the message buffer is empty.
+            str: The log message. Returns None if the message buffer is empty.
         """
         with self.buffer_log:
             if not self.message_buffer.empty():
                 return self.message_buffer.get()
-            else:
-                return ''
