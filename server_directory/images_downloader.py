@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import urllib
@@ -70,7 +71,7 @@ class ImageDownloader:
             sock.sendall(f'Downloaded picture {url.split("/")[-1]}'.encode())
             self.total_downloaded += 1
         except requests.exceptions.ConnectionError as ex:
-            pass
+            logging.warning(ex)
 
     def download_images(self, sock) -> None:
         """

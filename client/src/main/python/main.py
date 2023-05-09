@@ -1,3 +1,4 @@
+import logging
 import sys
 import threading
 
@@ -63,14 +64,17 @@ class ServerGUI(QWidget):
         @return: True if the gui fields are filled correctly
         """
         if not self.url_input.text():
+            logging.warning("Empty URL!")
             self._print_error('Site URL cannot be empty.')
             return False
 
         if not int(self.port_input.text()):
+            logging.warning("Empty port!")
             self._print_error('Port cannot be empty.')
             return False
 
         if not self.address_input.text():
+            logging.warning("Empty ip!")
             self._print_error('IP cannot be empty.')
             return False
 
