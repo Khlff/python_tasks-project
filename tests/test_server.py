@@ -11,7 +11,7 @@ from server_directory.server import ServerHTTP, exit_event
 class TestServerHTTP:
     @pytest.fixture()
     def server(self):
-        return ServerHTTP(('localhost', 8000), './images')
+        return ServerHTTP(('localhost', 8000), './images', 'download')
 
     def test_init(self, server):
         assert server.server_address == ('localhost', 8000)

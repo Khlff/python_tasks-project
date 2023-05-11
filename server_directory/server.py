@@ -5,11 +5,10 @@ from threading import Event
 
 import chardet
 
-import args_parser
-from images_downloader import ImageDownloader
+from server_directory import args_parser
 from server_directory.images_downloader import ImageDownloader
 from server_directory.constants import SOCKET_TIMEOUT, BUFFER_VALUE
-from adblocker import EasyListRegex
+from server_directory.adblocker import EasyListRegex
 
 exit_event = Event()
 
@@ -84,7 +83,7 @@ class ServerHTTP:
                 elif self.operation_mode == 'adblocker':
                     easy_list_regex = EasyListRegex()
                     html_without_ads = easy_list_regex.process(decoded_url)
-                    sock.sendall(html_without_ads)
+                    sock.sendall(html_without_ads.encode())
 
             except ConnectionResetError as ex:
                 pass

@@ -21,4 +21,4 @@ def test_get_log():
 def test_get_empty_log():
     with patch('socket.socket') as mock_socket:
         sender = WebSender('localhost', 1234, Mock())
-        assert sender.get_log() == ''
+        assert sender.get_log() is None
