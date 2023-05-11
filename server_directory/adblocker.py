@@ -1,39 +1,86 @@
 import re
-import urllib.request
+from re import Pattern
 
 import requests
 
 
-class EasyListLiteRegex:
+class EasyListRegex:
     def __init__(self):
         self.url = "https://easylist.to/easylist/easylist.txt"
+        self.easy_list_raw = requests.get(self.url).content.decode("utf-8")
+        self.reg_ex = self._easylist_to_reg_normalize()
 
-        self.content = str(requests.get(self.url).content)
+    def _easylist_to_reg_normalize(self) -> Pattern[str]:
+        """
+        Receives a string with easylist rules as input, normalizes it and returns a regular expression.
+        @return: normalized easylist as regular expression
+        """
 
-        self.content = re.sub(r'!.*\n', '', self.content)
-        self.content = re.sub(r'\n+', '\n', self.content)
+        # удаляем комментарии и пустые строки
+        self.easy_list_raw = re.sub(
+            r'!.*\n',
+            '',
+            self.easy_list_raw
+        )
+        self.easy_list_raw = re.sub(
+            r'\n+',
+            '\n',
+            self.easy_list_raw
+        )
 
-        self.content = re.sub(r'(\W)', r'\\\1', self.content)
+        # экранируем специальные символы
+        self.easy_list_raw = re.sub(
+            r'(\W)',
+            r'\\\1',
+            self.easy_list_raw
+        )
 
-        self.content = re.sub(r'\|([\w\-]+\.)+[\w\-]+(\:\d+)?\|', '',
-                              self.content)
-        self.content = re.sub(r'\|([\w\-]+\.)+[\w\-]+\|', '', self.content)
-        self.content = re.sub(r'\|[\w\-]+\|', '', self.content)
+        # заменяем доменные имена на регулярные выражения
+        self.easy_list_raw = re.sub(
+            r'\|([\w\-]+\.)+[\w\-]+(:\d+)?\|',
+            '',
+            self.easy_list_raw
+        )
+        self.easy_list_raw = re.sub(
+            r'\|([\w\-]+\.)+[\w\-]+\|',
+            '',
+            self.easy_list_raw
+        )
+        self.easy_list_raw = re.sub(
+            r'\|[\w\-]+\|',
+            '',
+            self.easy_list_raw
+        )
 
-        self.content = re.sub(r'^@@\|\|', '', self.content, flags=re.MULTILINE)
-        self.content = re.sub(r'^\|\|', r'^https?\:\/\/[^\/]+', self.content,
-                              flags=re.MULTILINE)
-        self.content = re.sub(r'^\|', r'https?\:\/\/[^\/]+\/', self.content,
-                              flags=re.MULTILINE)
+        # заменяем символы шаблонов на регулярные выражения
+        self.easy_list_raw = re.sub(
+            r'^@@\|\|',
+            '',
+            self.easy_list_raw,
+            flags=re.MULTILINE
+        )
+        self.easy_list_raw = re.sub(
+            r'^\|\|',
+            r'^https?\:\/\/[^\/]+',
+            self.easy_list_raw,
+            flags=re.MULTILINE
+        )
+        self.easy_list_raw = re.sub(
+            r'^\|',
+            r'https?\:\/\/[^\/]+\/',
+            self.easy_list_raw,
+            flags=re.MULTILINE
+        )
 
-        self.regex = re.compile(self.content)
+        regex = re.compile(self.easy_list_raw)
+        return regex
 
-    def process(self, url):
+    def process(self, url: str) -> str:
+        """
+        Removes ads from the transferred site.
+        @param url: site url
+        @return: html string
+        """
         html = requests.get(url).content.decode()
-        html = self.regex.sub("", html)
-        with open("test.html", "w", encoding="utf-8") as f:
-            f.write(html)
-
-
-lox = EasyListLiteRegex()
-lox.process("https://habr.com/ru/articles/724232/")
+        html = self.reg_ex.sub("", html)
+        return html
