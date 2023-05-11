@@ -1,11 +1,20 @@
 * ### Task name: HTTP(S) Webserver
-* ### This is a http(s) server that accepts the url to the site in any encoding and saves all images from it.
+* ### This is an http server that operates in two modes:
+    #### 1)Accepts the URL of the site in any encoding and saves all images from it. A gui client is written for this mode. 
+    #### 2)Accepts the URL of the site in any encoding and sends the html of this site with the cut-out advertisement.
 
-* ### Run it
-    #### Linux:
-        python3 server.py -path [--port] [-help]
-    #### Windows:
-        python server.py -path [--port] [-help]
+## Installation
+### To install the application, you need to clone the repository:
+```
+git clone https://github.com/Khlff/python_tasks-project.git
+cd python_tasks-project
+```
+          
+* ### Launching locally:
+  ```
+  pip install -r requirements.txt
+  python server.py -path -mode [--port] [--help]
+  ```
 
 ##  
 ###  Made by Nikita Khlopunov and Dmitry Kryuchkov
