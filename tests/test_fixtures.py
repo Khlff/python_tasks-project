@@ -1,11 +1,8 @@
-import socket
-import subprocess
 import tempfile
-import time
 from unittest import mock
 
 import pytest
-from images_downloader import ImageDownloader
+from server_directory.images_downloader import ImageDownloader
 
 
 @pytest.fixture
