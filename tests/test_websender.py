@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import Mock, patch
 from client.src.main.python.web_sender import WebSender
 

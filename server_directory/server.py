@@ -8,7 +8,7 @@ from threading import Event
 
 import chardet
 
-from images_downloader import ImageDownloader
+from server_directory.images_downloader import ImageDownloader
 from server_directory.constants import SOCKET_TIMEOUT, BUFFER_VALUE
 
 exit_event = Event()
