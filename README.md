@@ -12,8 +12,19 @@ cd python_tasks-project
           
 * ### Launching locally:
   ```
-  pip install -r requirements.txt
-  python server.py -path -mode [--port] [--help]
+  python -m venv venv;
+  ```
+  Linux:
+      ```
+    venv/bin/activate
+      ```
+  Windows:
+      ```
+    venv/Scripts/activate
+      ```
+  ```
+  pip install -r requirements.txt;
+  python server.py -path -mode [--port] [--help];
   ```
 
 ##  

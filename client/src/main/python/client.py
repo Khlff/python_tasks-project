@@ -4,7 +4,7 @@ HOST = 'localhost'
 PORT = 8080
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.settimeout(5)
+    s.settimeout(10)
     s.connect((HOST, PORT))
     message = "https://dvsemenov.ru/peredacha-fajla-cherez-soket-v-python-3/"
     s.sendall(message.encode())

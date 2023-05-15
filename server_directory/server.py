@@ -87,8 +87,10 @@ class ServerHTTP:
 
             except ConnectionResetError as ex:
                 print(ex)
+                break
             except ConnectionAbortedError as ex:
                 print(ex)
+                break
 
 
 def main():
