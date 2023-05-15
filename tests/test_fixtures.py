@@ -2,12 +2,12 @@ import tempfile
 from unittest import mock
 
 import pytest
-import server_directory
+from server_directory import ImageDownloader
 
 
 @pytest.fixture
 def test_image_downloader():
-    return server_directory.ImageDownloader('https://www.example.com', tempfile.mkdtemp())
+    return ImageDownloader('https://www.example.com', tempfile.mkdtemp())
 
 
 @pytest.fixture

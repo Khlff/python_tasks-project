@@ -14,7 +14,7 @@ import server_directory
 # from server_directory import TQDM_CHUNK_SIZE, TQDM_UNIT_DIVISOR_SIZE
 
 
-def _is_valid(url: str) -> bool:
+def is_valid(url: str) -> bool:
     """
     Checks if the url is a valid URL
     """
@@ -43,7 +43,7 @@ class ImageDownloader:
         image_urls = [
             urllib.parse.urljoin(self.SITE_URL, url)
             for url in image_urls
-            if _is_valid(urllib.parse.urljoin(self.SITE_URL, url))
+            if is_valid(urllib.parse.urljoin(self.SITE_URL, url))
         ]
         return image_urls
 

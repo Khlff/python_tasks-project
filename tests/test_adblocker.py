@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 from re import Pattern
+
 from server_directory import EasyListRegex
 
 
@@ -14,7 +15,7 @@ def test_process(monkeypatch):
     easy_list_regex = EasyListRegex()
     mock_response = Mock()
 
-    with open("test_html.html", "r", encoding="utf-8") as f:
+    with open("tests/test_html.html", "r", encoding="utf-8") as f:
         html = f.read()
 
     mock_response.content.decode.return_value = html
@@ -23,7 +24,7 @@ def test_process(monkeypatch):
     result = easy_list_regex.process("https://www.example.com")
     assert isinstance(result, str)
 
-    with open("test_html_result.html", "r", encoding="utf-8") as f:
+    with open("tests/test_html_result.html", "r", encoding="utf-8") as f:
         html_result = f.read()
 
     assert result == html_result
