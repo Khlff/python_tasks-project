@@ -8,7 +8,10 @@ from urllib.parse import urlparse
 import requests
 from tqdm import tqdm
 
-from constants import TQDM_CHUNK_SIZE, TQDM_UNIT_DIVISOR_SIZE
+import server_directory
+
+
+# from server_directory import TQDM_CHUNK_SIZE, TQDM_UNIT_DIVISOR_SIZE
 
 
 def _is_valid(url: str) -> bool:
@@ -56,12 +59,12 @@ class ImageDownloader:
             file_size = int(response.headers.get("Content-Length", 0))
             filename = os.path.join(self.path_to_download, url.split("/")[-1])
             progress = tqdm(
-                response.iter_content(TQDM_CHUNK_SIZE),
+                response.iter_content(server_directory.TQDM_CHUNK_SIZE),
                 f"Скачиваю {filename}",
                 total=file_size,
                 unit="B",
                 unit_scale=True,
-                unit_divisor=TQDM_UNIT_DIVISOR_SIZE
+                unit_divisor=server_directory.TQDM_UNIT_DIVISOR_SIZE
             )
 
             with open(filename, "wb") as f:

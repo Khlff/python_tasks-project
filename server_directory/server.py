@@ -5,10 +5,10 @@ from threading import Event
 
 import chardet
 
-from args_parser import create_parser
-from images_downloader import ImageDownloader
-from constants import SOCKET_TIMEOUT, BUFFER_VALUE
-from adblocker import EasyListRegex
+from server_directory import EasyListRegex
+from server_directory import ImageDownloader
+from server_directory.args_parser import create_parser
+from server_directory.constants import SOCKET_TIMEOUT, BUFFER_VALUE
 
 exit_event = Event()
 
