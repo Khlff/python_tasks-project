@@ -5,10 +5,10 @@ from threading import Event
 
 import chardet
 
-from server_directory import args_parser
-from server_directory.images_downloader import ImageDownloader
-from server_directory.constants import SOCKET_TIMEOUT, BUFFER_VALUE
-from server_directory.adblocker import EasyListRegex
+from args_parser import create_parser
+from images_downloader import ImageDownloader
+from constants import SOCKET_TIMEOUT, BUFFER_VALUE
+from adblocker import EasyListRegex
 
 exit_event = Event()
 
@@ -86,11 +86,13 @@ class ServerHTTP:
                     sock.sendall(html_without_ads.encode())
 
             except ConnectionResetError as ex:
-                pass
+                print(ex)
+            except ConnectionAbortedError as ex:
+                print(ex)
 
 
 def main():
-    parser = args_parser.create_parser()
+    parser = create_parser()
     args = parser.parse_args()
 
     server_address = ('localhost', args.port)

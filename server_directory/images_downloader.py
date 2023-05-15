@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 import requests
 from tqdm import tqdm
 
-from server_directory.constants import TQDM_CHUNK_SIZE, TQDM_UNIT_DIVISOR_SIZE
+from constants import TQDM_CHUNK_SIZE, TQDM_UNIT_DIVISOR_SIZE
 
 
 def _is_valid(url: str) -> bool:
