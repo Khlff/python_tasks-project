@@ -25,4 +25,16 @@ def create_parser() -> argparse.ArgumentParser:
         type=str,
         help='The path where the images will be saved',
     )
+    parser.add_argument(
+        "-mode",
+        "-MODE",
+        type=str,
+        help="Flag that sets the server operation mode.\n"
+             "[adblocker] - the mode of operation of the server in which\n"
+             "the html page is sent to the client without advertising.\n"
+             "[downloader] - the mode of operation of the server in which\n"
+             "it downloads images from the specified url.\n"
+             "[vk_downloader]] - the mode of operation of the server in which\n"
+             "it downloads images from the specified album in vk."
+    )
     return parser

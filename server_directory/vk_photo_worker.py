@@ -2,12 +2,26 @@ import requests
 
 
 class VKException(Exception):
-    def __init__(self, message):
+    """
+    Represents an exception that can occur during interaction with the vk.com API.
+    """
+    def __init__(self, message: str):
+        """
+        Initializes a new instance of the VKException class.
+        :param message: Error message.
+        """
         self.message = message
 
 
 class VKPhotoWorker:
+    """
+    Provides methods for working with user photos and albums.
+    """
     def __init__(self, access_token: str):
+        """
+        Initializes a new instance of the VKPhotoWorker class.
+        :param access_token: Access token for the vk.com API.
+        """
         self.access_token = access_token
         self.user_id = self.request_user_id()
 
@@ -15,6 +29,7 @@ class VKPhotoWorker:
         """
         Gets the id of the auth token owner.
         :return: User id.
+        :raises VKException: If an error occurs while making the API request.
         """
         url = 'https://api.vk.com/method/users.get'
         params = {
@@ -36,10 +51,11 @@ class VKPhotoWorker:
         """
         Gets a dictionary of album titles and ids.
         :return: Dictionary {title : id}.
+        :raises VKException: If an error occurs while making the API request.
         """
         albums_url = 'https://api.vk.com/method/photos.getAlbums'
         albums_params = {
-            'access_token': token,
+            'access_token': self.access_token,
             'owner_id': self.user_id,
             'extended': 1,
             'v': '5.131'
@@ -65,7 +81,8 @@ class VKPhotoWorker:
         """
         Takes links to photos from the album.
         :param album_id: ID of the album from which we take links to photos.
-        :return: list of photo urls
+        :return: List of photo urls.
+        :raises VKException: If an error occurs while making the API request.
         """
         photos_url = 'https://api.vk.com/method/photos.get'
         photos_params = {
@@ -90,7 +107,3 @@ class VKPhotoWorker:
             for item in photos_response['response']['items']
         ]
         return photo_urls
-
-
-token = ''
-vk_worker = VKPhotoWorker(token)
