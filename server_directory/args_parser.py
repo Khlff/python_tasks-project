@@ -6,7 +6,7 @@ import sys
 def create_parser() -> argparse.ArgumentParser:
     script_name = os.path.basename(sys.argv[0])
     parser = argparse.ArgumentParser(
-        usage=f'{script_name} PATH [--port] [-h]',
+        usage=f'{script_name} -path -mode [--port] [--help]',
         description='It`s server_directory that accepts the url to the site '
                     'in any encoding and saves all images from it.',
     )

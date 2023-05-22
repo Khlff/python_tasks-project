@@ -2,7 +2,7 @@ import tempfile
 from unittest import mock
 
 import pytest
-from server_directory.images_downloader import ImageDownloader
+from server_directory import ImageDownloader
 
 
 @pytest.fixture

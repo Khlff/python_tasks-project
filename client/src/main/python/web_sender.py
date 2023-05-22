@@ -43,7 +43,6 @@ class WebSender(QThread):
                     self.message_buffer.put(data.decode())
                 self.log_updated.set()
 
-
     def send_message(self, message: str):
         """
         Send a message to the server.

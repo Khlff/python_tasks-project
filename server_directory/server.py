@@ -5,8 +5,9 @@ from threading import Event
 
 import chardet
 
-import args_parser
-from images_downloader import ImageDownloader
+from server_directory import EasyListRegex
+from server_directory import ImageDownloader
+from server_directory.args_parser import create_parser
 from server_directory.constants import SOCKET_TIMEOUT, BUFFER_VALUE
 
 exit_event = Event()
@@ -20,7 +21,7 @@ def signal_handler(_signal: signal, _) -> None:
 
 
 class ServerHTTP:
-    def __init__(self, server_address: tuple, path_to_download: string):
+    def __init__(self, server_address: tuple, path_to_download: string, operation_mode: string):
         """
         :param server_address: (ip, port) address on which the server will be started
         :param path_to_download: the path where the images will be downloaded
@@ -29,6 +30,7 @@ class ServerHTTP:
         signal.signal(signal.SIGINT, signal_handler)
         self.server_address = server_address
         self.path_to_download = path_to_download
+        self.operation_mode = operation_mode
 
     def start_server(self):
         """
@@ -66,29 +68,37 @@ class ServerHTTP:
                 print(f'Data received from: {client_address}')
                 encoding = chardet.detect(data)['encoding']
                 decoded_url = data.decode(encoding)
-                image_downloader = ImageDownloader(
-                    decoded_url,
-                    self.path_to_download
-                )
+                if self.operation_mode == 'download':
+                    image_downloader = ImageDownloader(
+                        decoded_url,
+                        self.path_to_download
+                    )
 
-                image_downloader.download_images(sock)
+                    image_downloader.download_images(sock)
 
-                sock.sendall(
-                    f'\nDownloaded {image_downloader.total_downloaded}'
-                    f' pictures from {decoded_url}'.encode()
-                )
-
+                    sock.sendall(
+                        f'\nDownloaded {image_downloader.total_downloaded}'
+                        f' pictures from {decoded_url}'.encode()
+                    )
+                elif self.operation_mode == 'adblocker':
+                    easy_list_regex = EasyListRegex()
+                    html_without_ads = easy_list_regex.process(decoded_url)
+                    sock.sendall(html_without_ads.encode())
 
             except ConnectionResetError as ex:
-                pass
+                print(ex)
+                break
+            except ConnectionAbortedError as ex:
+                print(ex)
+                break
 
 
 def main():
-    parser = args_parser.create_parser()
+    parser = create_parser()
     args = parser.parse_args()
 
     server_address = ('localhost', args.port)
-    server = ServerHTTP(server_address, args.path)
+    server = ServerHTTP(server_address, args.path, args.mode)
     server.start_server()
 
 
