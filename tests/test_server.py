@@ -52,6 +52,3 @@ class TestServerHTTP:
             mock_create_server.assert_called_once_with(('localhost', 8000))
             sock_mock.settimeout.assert_called_once_with(0.1)
             sock_mock.accept.assert_called()
-
-
-
