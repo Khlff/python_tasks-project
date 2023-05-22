@@ -11,7 +11,7 @@ from server_directory.server import ServerHTTP, exit_event
 class TestServerHTTP:
     @pytest.fixture()
     def server(self):
-        return ServerHTTP(('localhost', 8000), './images', 'download')
+        return ServerHTTP(('localhost', 8000), './images', 'downloader')
 
     def test_init(self, server):
         assert server.server_address == ('localhost', 8000)
@@ -51,6 +51,3 @@ class TestServerHTTP:
             mock_create_server.assert_called_once_with(('localhost', 8000))
             sock_mock.settimeout.assert_called_once_with(0.1)
             sock_mock.accept.assert_called()
-
-
-

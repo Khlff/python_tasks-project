@@ -9,6 +9,7 @@ from server_directory import EasyListRegex
 from server_directory import ImageDownloader
 from server_directory.args_parser import create_parser
 from server_directory.constants import SOCKET_TIMEOUT, BUFFER_VALUE
+from server_directory.vk_photo_worker import VKPhotoWorker
 
 exit_event = Event()
 
@@ -16,17 +17,22 @@ exit_event = Event()
 def signal_handler(_signal: signal, _) -> None:
     """
     Set global variable Event into True
+    :param _signal: The signal that was received.
+    :param _: Additional information about the signal (not used).
     """
     exit_event.set()
 
 
 class ServerHTTP:
-    def __init__(self, server_address: tuple, path_to_download: string, operation_mode: string):
+    """
+    Class for starting an HTTP server at a specified address and port.
+    """
+    def __init__(self, server_address: tuple, path_to_download: string,
+                 operation_mode: string):
         """
         :param server_address: (ip, port) address on which the server will be started
         :param path_to_download: the path where the images will be downloaded
         """
-
         signal.signal(signal.SIGINT, signal_handler)
         self.server_address = server_address
         self.path_to_download = path_to_download
@@ -34,9 +40,8 @@ class ServerHTTP:
 
     def start_server(self):
         """
-        Starts the server
+        Starts the HTTP server and begins listening for incoming connections.
         """
-
         with socket.create_server(self.server_address) as sock:
             sock.settimeout(SOCKET_TIMEOUT)
             while not exit_event.is_set():
@@ -51,9 +56,9 @@ class ServerHTTP:
     def _receive_connection(self, sock: socket,
                             client_address: socket) -> None:
         """
-        Gets the url from the established connection and downloads all the images from it
-        :param sock: socket with an established connection
-        :param client_address: client address
+        Gets the URL from the established connection.
+        :param sock: the socket with an established connection
+        :param client_address: the client address
         """
 
         while True:
@@ -68,22 +73,13 @@ class ServerHTTP:
                 print(f'Data received from: {client_address}')
                 encoding = chardet.detect(data)['encoding']
                 decoded_url = data.decode(encoding)
-                if self.operation_mode == 'download':
-                    image_downloader = ImageDownloader(
-                        decoded_url,
-                        self.path_to_download
-                    )
 
-                    image_downloader.download_images(sock)
-
-                    sock.sendall(
-                        f'\nDownloaded {image_downloader.total_downloaded}'
-                        f' pictures from {decoded_url}'.encode()
-                    )
+                if self.operation_mode == 'downloader':
+                    self._image_downloader_process(decoded_url, sock)
                 elif self.operation_mode == 'adblocker':
-                    easy_list_regex = EasyListRegex()
-                    html_without_ads = easy_list_regex.process(decoded_url)
-                    sock.sendall(html_without_ads.encode())
+                    self._adblocker_process(decoded_url, sock)
+                elif self.operation_mode == 'vk_downloader':
+                    self._vk_downloader_process(decoded_url, sock)
 
             except ConnectionResetError as ex:
                 print(ex)
@@ -92,11 +88,59 @@ class ServerHTTP:
                 print(ex)
                 break
 
+    def _image_downloader_process(self, data, sock):
+        """
+        Processes a URL containing links to images and downloads those images.
+        :param data: The URL with the images.
+        :param sock: The socket with the established connection.
+        """
+        image_downloader = ImageDownloader(data, self.path_to_download)
+        image_downloader.download_images(sock)
+        sock.sendall(
+            f'\nDownloaded {image_downloader.total_downloaded}'
+            f' pictures from {data}'.encode()
+        )
+
+    def _adblocker_process(self, data, sock):
+        """
+        Removes ads from HTML code located at the specified URL.
+        :param data: The URL with HTML code containing ads.
+        :param sock: The socket with the established connection.
+        """
+        easy_list_regex = EasyListRegex()
+        html_without_ads = easy_list_regex.process(data)
+        sock.sendall(html_without_ads.encode())
+
+    def _vk_downloader_process(self, data, sock):
+        """
+        Processes a URL containing a VKontakte token and album name and downloads images from the album.
+        :param data: The URL with the VKontakte token and album name.
+        :param sock: The socket with the established connection.
+        """
+        list_data = data.split(";")
+        token = list_data[0]
+        album_title = list_data[1]
+        vk_worker = VKPhotoWorker(token)
+        dict_titles = vk_worker.request_albums_list()
+        photo_urls = None
+
+        for title in dict_titles:
+            if title == album_title:
+                photo_urls = vk_worker.request_photos_from_album(
+                    dict_titles[title])
+                break
+        image_downloader = ImageDownloader("", self.path_to_download)
+
+        for url in photo_urls:
+            image_downloader.download(url, sock)
+
 
 def main():
+    """
+    The main function for starting the HTTP server.
+    """
     parser = create_parser()
     args = parser.parse_args()
-
     server_address = ('localhost', args.port)
     server = ServerHTTP(server_address, args.path, args.mode)
     server.start_server()
