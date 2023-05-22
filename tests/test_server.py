@@ -23,8 +23,7 @@ class TestServerHTTP:
         data = b'http://test.com\n'
         sock.recv.side_effect = [data, b'']
 
-        with patch(
-                'server_directory.server.ImageDownloader') as mock_downloader:
+        with patch('server_directory.server.ImageDownloader') as mock_downloader:
             mock_downloader.return_value.download_images.return_value = None
             mock_downloader.return_value.total_downloaded = 0
             server._receive_connection(sock, client_address)
