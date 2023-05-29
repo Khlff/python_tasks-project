@@ -27,8 +27,7 @@ class ServerHTTP:
     """
     Class for starting an HTTP server at a specified address and port.
     """
-    def __init__(self, server_address: tuple, path_to_download: string,
-                 operation_mode: string):
+    def __init__(self, server_address: tuple, path_to_download: string):
         """
         :param server_address: (ip, port) address on which the server will be started
         :param path_to_download: the path where the images will be downloaded
@@ -36,7 +35,6 @@ class ServerHTTP:
         signal.signal(signal.SIGINT, signal_handler)
         self.server_address = server_address
         self.path_to_download = path_to_download
-        self.operation_mode = operation_mode
 
     def start_server(self):
         """
@@ -72,14 +70,14 @@ class ServerHTTP:
 
                 print(f'Data received from: {client_address}')
                 encoding = chardet.detect(data)['encoding']
-                decoded_url = data.decode(encoding)
+                decoded_data = data.decode(encoding).split(';')
 
-                if self.operation_mode == 'downloader':
-                    self._image_downloader_process(decoded_url, sock)
-                elif self.operation_mode == 'adblocker':
-                    self._adblocker_process(decoded_url, sock)
-                elif self.operation_mode == 'vk_downloader':
-                    self._vk_downloader_process(decoded_url, sock)
+                if decoded_data[0] == 'image_downloader':
+                    self._image_downloader_process(decoded_data[1], sock)
+                elif decoded_data[0] == 'adblocker':
+                    self._adblocker_process(decoded_data[1], sock)
+                elif decoded_data[0] == 'vk_downloader':
+                    self._vk_downloader_process(decoded_data[1], decoded_data[2], sock)
 
             except ConnectionResetError as ex:
                 print(ex)
@@ -111,15 +109,13 @@ class ServerHTTP:
         html_without_ads = easy_list_regex.process(data)
         sock.sendall(html_without_ads.encode())
 
-    def _vk_downloader_process(self, data, sock):
+    def _vk_downloader_process(self, token, album_title, sock):
         """
         Processes a URL containing a VKontakte token and album name and downloads images from the album.
-        :param data: The URL with the VKontakte token and album name.
+        :param token: VKontakte token.
+        :param album_title: VKontakte album name.
         :param sock: The socket with the established connection.
         """
-        list_data = data.split(";")
-        token = list_data[0]
-        album_title = list_data[1]
         vk_worker = VKPhotoWorker(token)
         dict_titles = vk_worker.request_albums_list()
         photo_urls = None
@@ -142,7 +138,7 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     server_address = ('localhost', args.port)
-    server = ServerHTTP(server_address, args.path, args.mode)
+    server = ServerHTTP(server_address, args.path)
     server.start_server()
 
 

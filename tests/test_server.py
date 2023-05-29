@@ -11,7 +11,7 @@ from server_directory.server import ServerHTTP, exit_event
 class TestServerHTTP:
     @pytest.fixture()
     def server(self):
-        return ServerHTTP(('localhost', 8000), './images', 'downloader')
+        return ServerHTTP(('localhost', 8000), './images')
 
     def test_init(self, server):
         assert server.server_address == ('localhost', 8000)
@@ -20,12 +20,13 @@ class TestServerHTTP:
     def test_receive_connection(self, server):
         sock = MagicMock()
         client_address = ('127.0.0.1', 1234)
-        data = b'http://test.com\n'
+        data = b'image_downloader;http://test.com\n'
         sock.recv.side_effect = [data, b'']
 
         with patch('server_directory.server.ImageDownloader') as mock_downloader:
             mock_downloader.return_value.download_images.return_value = None
             mock_downloader.return_value.total_downloaded = 0
+
             server._receive_connection(sock, client_address)
 
             mock_downloader.assert_called_once_with('http://test.com\n',
