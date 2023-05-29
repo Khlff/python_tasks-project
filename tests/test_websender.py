@@ -12,13 +12,13 @@ def test_send_message():
 
 
 def test_get_log():
-    with patch('socket.socket') as mock_socket:
+    with patch('socket.socket'):
         sender = WebSender('localhost', 1234, Mock())
         sender.message_buffer.put('Log message')
         assert sender.get_log() == 'Log message'
 
 
 def test_get_empty_log():
-    with patch('socket.socket') as mock_socket:
+    with patch('socket.socket'):
         sender = WebSender('localhost', 1234, Mock())
         assert sender.get_log() is None

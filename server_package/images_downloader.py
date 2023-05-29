@@ -8,29 +8,41 @@ from urllib.parse import urlparse
 import requests
 from tqdm import tqdm
 
-import server_directory
+import server_package
 
 
-# from server_directory import TQDM_CHUNK_SIZE, TQDM_UNIT_DIVISOR_SIZE
+# from server_package import TQDM_CHUNK_SIZE, TQDM_UNIT_DIVISOR_SIZE
 
 
 def is_valid(url: str) -> bool:
     """
-    Checks if the url is a valid URL
+    Checks if the given URL is a valid URL.
+    :param url: The URL to check.
+    :return: True if the URL is valid, False otherwise.
     """
     parsed = urlparse(url)
     return bool(parsed.netloc) and bool(parsed.scheme)
 
 
 class ImageDownloader:
+    """
+    Provides methods for downloading images from a website.
+    """
     def __init__(self, url: str, path: str):
+        """
+        Initializes a new instance of the ImageDownloader class.
+        :param url: The URL of the website to download images from.
+        :param path: The directory to save the downloaded images to.
+        """
         self.SITE_URL = url
         self.path_to_download = path
         self.total_downloaded = 0
 
     def get_image_urls(self) -> list:
         """
-        Returns a list of links to site images
+        Retrieves a list of image URLs from the website.
+        :return: A list of image URLs.
+        :raises: Any exception raised during the request process.
         """
         response = requests.get(self.SITE_URL)
         html = response.text
@@ -47,9 +59,12 @@ class ImageDownloader:
         ]
         return image_urls
 
-    def _download(self, url: str, sock: socket) -> None:
+    def download(self, url: str, sock: socket) -> None:
         """
-        Downloads the file by URL and places it in the `pathname` folder
+        Downloads a single file specified by the URLand saves it to the specified directory.
+        :param url: The URL of the file to download.
+        :param sock: The socket with an established connection.
+        :raises: Any exception raised during the download process.
         """
 
         if not os.path.isdir(self.path_to_download):
@@ -57,14 +72,15 @@ class ImageDownloader:
         try:
             response = requests.get(url, stream=True)
             file_size = int(response.headers.get("Content-Length", 0))
-            filename = os.path.join(self.path_to_download, url.split("/")[-1])
+            url_ = url.split("/")[-1]
+            filename = os.path.join(self.path_to_download, url_.split("?")[0])
             progress = tqdm(
-                response.iter_content(server_directory.TQDM_CHUNK_SIZE),
+                response.iter_content(server_package.TQDM_CHUNK_SIZE),
                 f"Скачиваю {filename}",
                 total=file_size,
                 unit="B",
                 unit_scale=True,
-                unit_divisor=server_directory.TQDM_UNIT_DIVISOR_SIZE
+                unit_divisor=server_package.TQDM_UNIT_DIVISOR_SIZE
             )
 
             with open(filename, "wb") as f:
@@ -83,4 +99,4 @@ class ImageDownloader:
         """
         url_list = self.get_image_urls()
         for url in url_list:
-            self._download(url, sock)
+            self.download(url, sock)
