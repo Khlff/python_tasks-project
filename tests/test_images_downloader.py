@@ -1,9 +1,9 @@
 import os
-import socket
 from unittest.mock import MagicMock, patch
 
-from server_directory import ImageDownloader, is_valid
-from .test_fixtures import test_image_downloader, mock_requests_get, mock_response
+from server_package import ImageDownloader, is_valid
+from .test_fixtures import test_image_downloader, mock_requests_get, \
+    mock_response
 
 
 def test_is_valid_url():
@@ -62,6 +62,6 @@ def test_is_valid():
         'http://www.example.com'
     ]
     for url in invalid_urls:
-        assert  not is_valid(url)
+        assert not is_valid(url)
     for url in valid_urls:
-        assert is_valid(url) == True
+        assert is_valid(url)

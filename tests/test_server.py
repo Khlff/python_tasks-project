@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from server_directory.server import ServerHTTP, exit_event
+from server_package.server import ServerHTTP, exit_event
 
 
 class TestServerHTTP:
@@ -23,7 +23,7 @@ class TestServerHTTP:
         data = b'image_downloader;http://test.com\n'
         sock.recv.side_effect = [data, b'']
 
-        with patch('server_directory.server.ImageDownloader') as mock_downloader:
+        with patch('server_package.server.ImageDownloader') as mock_downloader:
             mock_downloader.return_value.download_images.return_value = None
             mock_downloader.return_value.total_downloaded = 0
 

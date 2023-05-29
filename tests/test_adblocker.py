@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 from re import Pattern
 
-from server_directory import EasyListRegex
+from server_package import EasyListRegex
 
 
 def test_easylist_to_reg_normalize():

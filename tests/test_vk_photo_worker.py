@@ -1,5 +1,5 @@
 import requests
-from server_directory.vk_photo_worker import VKPhotoWorker, VKException
+from server_package.vk_photo_worker import VKPhotoWorker, VKException
 import pytest
 from unittest.mock import patch
 

@@ -1,3 +1,4 @@
+import logging
 import signal
 import socket
 import string
@@ -5,11 +6,11 @@ from threading import Event
 
 import chardet
 
-from server_directory import EasyListRegex
-from server_directory import ImageDownloader
-from server_directory.args_parser import create_parser
-from server_directory.constants import SOCKET_TIMEOUT, BUFFER_VALUE
-from server_directory.vk_photo_worker import VKPhotoWorker
+from server_package import EasyListRegex
+from server_package import ImageDownloader
+from server_package.args_parser import create_parser
+from server_package.constants import SOCKET_TIMEOUT, BUFFER_VALUE
+from server_package.vk_photo_worker import VKPhotoWorker, VKException
 
 exit_event = Event()
 
@@ -27,6 +28,7 @@ class ServerHTTP:
     """
     Class for starting an HTTP server at a specified address and port.
     """
+
     def __init__(self, server_address: tuple, path_to_download: string):
         """
         :param server_address: (ip, port) address on which the server will be started
@@ -46,7 +48,7 @@ class ServerHTTP:
                 try:
                     connect, client_address = sock.accept()
                     self._receive_connection(connect, client_address)
-                except socket.timeout as ex:
+                except socket.timeout:
                     pass
             else:
                 print('Exit from program...')
@@ -77,14 +79,20 @@ class ServerHTTP:
                 elif decoded_data[0] == 'adblocker':
                     self._adblocker_process(decoded_data[1], sock)
                 elif decoded_data[0] == 'vk_downloader':
-                    self._vk_downloader_process(decoded_data[1], decoded_data[2], sock)
+                    self._vk_downloader_process(
+                        decoded_data[1],
+                        decoded_data[2],
+                        sock
+                    )
 
             except ConnectionResetError as ex:
-                print(ex)
+                logging.warning(ex)
                 break
             except ConnectionAbortedError as ex:
-                print(ex)
+                logging.warning(ex)
                 break
+            except Exception as ex:
+                logging.warning(ex)
 
     def _image_downloader_process(self, data, sock):
         """
@@ -99,7 +107,8 @@ class ServerHTTP:
             f' pictures from {data}'.encode()
         )
 
-    def _adblocker_process(self, data, sock):
+    @staticmethod
+    def _adblocker_process(data, sock):
         """
         Removes ads from HTML code located at the specified URL.
         :param data: The URL with HTML code containing ads.
@@ -116,19 +125,24 @@ class ServerHTTP:
         :param album_title: VKontakte album name.
         :param sock: The socket with the established connection.
         """
-        vk_worker = VKPhotoWorker(token)
-        dict_titles = vk_worker.request_albums_list()
-        photo_urls = None
+        try:
+            vk_worker = VKPhotoWorker(token)
+            dict_titles = vk_worker.request_albums_list()
+            photo_urls = None
 
-        for title in dict_titles:
-            if title == album_title:
-                photo_urls = vk_worker.request_photos_from_album(
-                    dict_titles[title])
-                break
-        image_downloader = ImageDownloader("", self.path_to_download)
+            for title in dict_titles:
+                if title == album_title:
+                    photo_urls = vk_worker.request_photos_from_album(
+                        dict_titles[title])
+                    break
+            image_downloader = ImageDownloader("", self.path_to_download)
 
-        for url in photo_urls:
-            image_downloader.download(url, sock)
+            if photo_urls:
+                for url in photo_urls:
+                    image_downloader.download(url, sock)
+        except VKException as ex:
+            sock.sendall(ex.message.encode())
+            logging.warning(ex)
 
 
 def main():
